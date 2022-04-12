@@ -46,4 +46,4 @@ These Ideas below are from [the final section](https://boot.dev/project/709a2e74
 
 - [ ] Write a full guide for the backend API designing
 - [ ] Integrate with discord bot
-- [ ] Use sentimental analysis
+- [ ] Use sentimental analysis to detect the emotion of each post
