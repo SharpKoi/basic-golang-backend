@@ -1,8 +1,33 @@
 # Golang Backend Example - Social Media
 
-This project is written in[ Go](https://go.dev/), following the course: **Social Media Backend in Go**, provided by [Boot.dev](https://boot.dev/courses/cs-track) team. Using the `net/http` package from golang standard library and json files as the database to build a simple social media backend. 
+This project is written in[ Go](https://go.dev/). After learning from [Boot.dev](https://boot.dev/courses/cs-track) Golang courses, trying to implement a simple RESTful backend API with golang standard library `net/http`, and using json as the database.
 
-You can find more informations on [Boot.dev](https://boot.dev/courses/cs-track) and take lots of useful courses from there 🤩.
+To run this project, type the command below:
+
+```sh
+git clone https://github.com/SharpKoi/golang-backend-example.git
+cd golang-backend-example
+go run .
+```
+
+And it will create a localhost server listening on port 8080.
+
+You can use Postman or curl or any else to test this API.
+
+## API
+
+| Method | URL                  | Description                                                 |
+| :----- | :------------------- | :---------------------------------------------------------- |
+| GET    | /api/users           | Get all user accounts from database                         |
+| GET    | /api/users/${email}  | Get the user account by user's email                        |
+| POST   | /api/users           | Create an user account by given request body                |
+| PUT    | /api/users/${email}  | Update the user account by the given email and request body |
+| DELETE | /api/users/t${email} | Delete user account by the given email                      |
+| GET    | /api/posts/${email}  | Get all the posts created by the user with the given email  |
+| POST   | /api/posts           | Create a post by given request body                         |
+| DELETE | /api/posts/${uuid}   | Delete a post by the given uuid                             |
+
+Here's also a [full testing example](https://www.postman.com/science-architect-49213412/workspace/go-backend-examples/collection/17316452-4ed311e2-369b-46d9-aac2-cd8137b67a97?action=share&creator=17316452) created at Postman. You can use the given examples to test this API.
 
 ## TODO
 
@@ -21,3 +46,4 @@ These Ideas below are from [the final section](https://boot.dev/project/709a2e74
 
 - [ ] Write a full guide for the backend API designing
 - [ ] Integrate with discord bot
+- [ ] Use sentimental analysis
