@@ -1,5 +1,7 @@
 # Golang Backend Example - Social Media
 
+> :bulb: Info: You're in advance version which implemented more ideas. To see the original example please switch to `master` branch.
+
 This project is written in[ Go](https://go.dev/). After learning from [Boot.dev](https://boot.dev/courses/cs-track) Golang courses, trying to implement a simple RESTful backend API with golang standard library `net/http`, and using json as the database.
 
 To run this project, type the command below:
