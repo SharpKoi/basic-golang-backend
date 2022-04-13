@@ -20,8 +20,7 @@ type errorBody struct {
 }
 
 func main() {
-
-	dbClient := database.NewClient("db.json")
+	dbClient := database.NewClient("db/db.json")
 	err := dbClient.InitDB()
 	if err != nil {
 		log.Fatal(err)
