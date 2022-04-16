@@ -1,6 +1,6 @@
 # Golang Backend Example - Social Media
 
-> :bulb: **Now you can see the advanced example which implemented more ideas by switching to `advance` branch**.
+> :bulb: **Now you can see the [advanced example](https://github.com/SharpKoi/golang-backend-example/tree/advance) which implemented more ideas by switching to `advance` branch**.
 
 This project is written in[ Go](https://go.dev/). After learning from [Boot.dev](https://boot.dev/courses/cs-track) Golang courses, trying to implement a simple RESTful backend API with golang standard library `net/http`, and using json as the database.
 
