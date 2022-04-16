@@ -5,12 +5,6 @@ package database
 
 import "time"
 
-// databaseSchema: the database schema
-type databaseSchema struct {
-	Users map[string]User `json:"users"`
-	Posts map[string]Post `json:"posts"`
-}
-
 // User the user data
 type User struct {
 	CreatedAt time.Time `json:"createdAt"`

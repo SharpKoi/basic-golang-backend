@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"go-backend-example/internal/database"
 	"log"
 	"net/http"
 	"strings"
@@ -33,17 +32,13 @@ func (apiConf apiConfig) endpointUsersHandler(w http.ResponseWriter, r *http.Req
 
 // GET /api/users or /api/users/
 func (apiConf apiConfig) handlerGetUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := apiConf.dbClient.GetUsers()
+	users, err := apiConf.dbClient.GetUsers(10)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	respondWithJson(w, http.StatusOK, struct {
-		Users []database.User `json:"users"`
-	}{
-		Users: users,
-	})
+	respondWithJson(w, http.StatusOK, users)
 }
 
 // GET /api/users/test@example.com
@@ -82,7 +77,7 @@ func (apiConf apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	user, err := apiConf.dbClient.CreateUser(params.Email, params.Password, params.Name, params.Age)
+	_, err = apiConf.dbClient.CreateUser(params.Email, params.Password, params.Name, params.Age)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
@@ -90,7 +85,7 @@ func (apiConf apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 
 	// the instruction says the user should be marshalled to json
 	// is that needed?
-	respondWithJson(w, http.StatusCreated, user)
+	respondWithJson(w, http.StatusCreated, "Successfully created a new user!")
 	log.Println("A new user registered!")
 }
 
@@ -124,12 +119,7 @@ func (apiConf apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	respondWithJson(w, http.StatusOK, struct {
-		Message string
-	}{
-		Message: msg,
-	})
-
+	respondWithJson(w, http.StatusOK, msg)
 	log.Println(msg)
 }
 
@@ -143,17 +133,13 @@ func (apiConf apiConfig) handlerDeleteUser(w http.ResponseWriter, r *http.Reques
 	}
 	email = strings.TrimPrefix(email, "/")
 
-	err := apiConf.dbClient.DeleteUser(email)
+	_, err := apiConf.dbClient.DeleteUser(email)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	msg := fmt.Sprintf("Successfully deleted user: %s", email)
-	respondWithJson(w, http.StatusOK, struct {
-		Message string
-	}{
-		Message: msg,
-	})
+	respondWithJson(w, http.StatusOK, msg)
 	log.Println(msg)
 }

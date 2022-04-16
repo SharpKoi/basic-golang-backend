@@ -1,58 +1,65 @@
 package database
 
-/* This file defines a Client struct to init/read/write the database
+/* This file defines a Client struct to init/read/write the database.
+ * It's highly recommended to use pgx directly instead of database/sql if your target is only PostgresQL.
+ * But here I demonstrate the usage of the standard library database/sql.
  */
 
 import (
-	"encoding/json"
-	"os"
+	"database/sql"
+	"io/ioutil"
+	"log"
+	"path/filepath"
+	"strings"
+
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 // Client store the database path.
 type Client struct {
-	dbPath string
+	sqlPath string
+	db      *sql.DB
 }
 
 // NewClient exactly create a new instance of Client.
-func NewClient(dbPath string) Client {
-	return Client{
-		dbPath: dbPath,
+func NewClient(dbURL string, sqlPath string) Client {
+	db, err := sql.Open("pgx", dbURL)
+	if err != nil {
+		log.Fatal(err)
 	}
-}
 
-func (c Client) createDB() error {
-	data, _ := json.Marshal(struct{}{})
-	err := os.WriteFile(c.dbPath, data, 0666)
+	client := Client{
+		sqlPath: sqlPath,
+		db:      db,
+	}
 
-	return err
+	// ping test
+	if err := db.Ping(); err != nil {
+		log.Println("Warning: Ping failed.", err)
+	}
+
+	return client
 }
 
 func (c Client) InitDB() error {
-	_, err := os.ReadFile(c.dbPath)
-
+	b, err := ioutil.ReadFile(filepath.Join(c.sqlPath, "init.sql"))
 	if err != nil {
-		// cannot read the database file or not exists
-		return c.createDB()
+		return err
 	}
 
-	return err
-}
+	_sql := string(b)
+	scripts := strings.Split(_sql, ";")
+	for _, script := range scripts {
+		stmt, err := c.db.Prepare(strings.TrimSpace(script))
+		if err != nil {
+			return err
+		}
 
-func (c Client) writeDB(db databaseSchema) error {
-	// write data into
-	data, _ := json.Marshal(db)
-	err := os.WriteFile(c.dbPath, data, 0666)
-
-	return err
-}
-
-func (c Client) readDB() (databaseSchema, error) {
-	data, err := os.ReadFile(c.dbPath)
-	schema := databaseSchema{
-		Users: map[string]User{},
-		Posts: map[string]Post{},
+		_, err = stmt.Exec()
+		if err != nil {
+			return err
+		}
 	}
-	_ = json.Unmarshal(data, &schema)
 
-	return schema, err
+	return nil
 }

@@ -5,156 +5,149 @@ package database
  */
 
 import (
+	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	"time"
 )
 
 /** USER SERVICE **/
 
-func (c Client) GetUsers() ([]User, error) {
+func (c Client) CheckUserExists(email string) (bool, error) {
+	var tmp string
+	err := c.db.QueryRow("select email from users where email = $1", email).Scan(&tmp)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (c Client) GetUsers(limit int) ([]User, error) {
 	var users []User
 
-	schema, err := c.readDB()
+	// set limit to keep memory safe
+	rows, err := c.db.Query("select * from users limit ($1)", limit)
 	if err != nil {
-		return []User{}, err
+		return users, err
 	}
-	for _, user := range schema.Users {
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			id   int
+			user User
+		)
+		err := rows.Scan(&id, &user.Email, &user.Password, &user.Name, &user.Age, &user.CreatedAt)
+		if err != nil {
+			return users, err
+		}
+
 		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return users, err
 	}
 
 	return users, err
 }
 
 func (c Client) GetUser(email string) (User, error) {
-	schema, err := c.readDB()
-	if err != nil {
-		return User{}, err
-	}
+	row := c.db.QueryRow("select * from users where email = $1", email)
 
-	user, exists := schema.Users[email]
-	if !exists {
-		return User{}, errors.New("user doesn't exist")
-	}
+	var (
+		id   int
+		user User
+	)
+	err := row.Scan(&id, &user.Email, &user.Password, &user.Name, &user.Age, &user.CreatedAt)
 
 	return user, err
 }
 
-func (c Client) CreateUser(email, password, name string, age int) (User, error) {
-	schema, err := c.readDB()
+func (c Client) CreateUser(email, password, name string, age int) (sql.Result, error) {
+	stmt, err := c.db.Prepare("insert into users (email, password, name, age, createAt) values ($1, $2, $3, $4, $5)")
 	if err != nil {
-		return User{}, err
+		return nil, err
 	}
 
-	_user, exists := schema.Users[email]
-	if exists {
-		return _user, errors.New("user's email has already been registered")
-	}
-
-	// create a new instance
-	user := User{
-		CreatedAt: time.Now().UTC(),
-		Email:     email,
-		Password:  password,
-		Name:      name,
-		Age:       age,
-	}
-
-	// update schema and store it in the database
-	schema.Users[email] = user
-	err = c.writeDB(schema)
-
-	return user, err
+	res, err := stmt.Exec(email, password, name, age, time.Now().UTC())
+	return res, err
 }
 
-func (c Client) UpdateUser(email, password, name string, age int) (User, error) {
-	schema, err := c.readDB()
+func (c Client) UpdateUser(email, password, name string, age int) (sql.Result, error) {
+	stmt, err := c.db.Prepare("update users set password = $2, name = $3, age = $4 where email = $1")
 	if err != nil {
-		return User{}, err
+		return nil, err
 	}
 
-	user, exists := schema.Users[email]
-	if !exists {
-		return User{}, errors.New("user doesn't exist")
-	}
-
-	user.Password = password
-	user.Name = name
-	user.Age = age
-
-	// set as the updated user
-	schema.Users[email] = user
-	// remember to save the updated schema
-	err = c.writeDB(schema)
-
-	return user, err
+	res, err := stmt.Exec(email, password, name, age)
+	return res, err
 }
 
-func (c Client) DeleteUser(email string) error {
-	schema, err := c.readDB()
+func (c Client) DeleteUser(email string) (sql.Result, error) {
+	stmt, err := c.db.Prepare("delete from users where email = $1")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// remember to save schema after the user deleted :)
-	delete(schema.Users, email)
-	err = c.writeDB(schema)
-
-	return err // actually nil
+	res, err := stmt.Exec(email)
+	return res, err
 }
 
 /** POST SERVICE **/
 
 func (c Client) GetPosts(userEmail string) ([]Post, error) {
-	posts := make([]Post, 0, 10)
+	posts := []Post{}
 
-	schema, err := c.readDB()
+	rows, err := c.db.Query("select * from posts where userEmail = $1", userEmail)
 	if err != nil {
 		return posts, err
 	}
+	defer rows.Close()
 
-	for _, post := range schema.Posts {
-		if post.UserEmail == userEmail {
-			posts = append(posts, post)
-		}
+	for rows.Next() {
+		var post Post
+		err = rows.Scan(&post.ID, &post.UserEmail, &post.Text, &post.CreatedAt)
+		posts = append(posts, post)
+	}
+
+	if err = rows.Err(); err != nil {
+		return posts, err
 	}
 
 	return posts, err
 }
 
-func (c Client) CreatePost(userEmail, text string) (Post, error) {
-	schema, err := c.readDB()
+func (c Client) CreatePost(userEmail, text string) (sql.Result, error) {
+	exists, err := c.CheckUserExists(userEmail)
 	if err != nil {
-		return Post{}, err
+		return nil, err
+	}
+	if exists == false {
+		return nil, errors.New(fmt.Sprintf("user: \"%s\" not found", userEmail))
 	}
 
-	_, exists := schema.Users[userEmail]
-	if !exists {
-		return Post{}, errors.New("user doesn't exist")
+	stmt, err := c.db.Prepare("insert into public.posts (uid, useremail, text, createat) values ($1, $2, $3, $4);")
+	if err != nil {
+		return nil, err
 	}
 
-	post := Post{
-		ID:        uuid.New().String(),
-		CreatedAt: time.Now().UTC(),
-		UserEmail: userEmail,
-		Text:      text,
-	}
-
-	schema.Posts[post.ID] = post
-	err = c.writeDB(schema)
-
-	return post, err
+	res, err := stmt.Exec(uuid.New().String(), userEmail, text, time.Now().UTC())
+	return res, err
 }
 
-func (c Client) DeletePost(id string) error {
-	schema, err := c.readDB()
+func (c Client) DeletePost(id string) (sql.Result, error) {
+	stmt, err := c.db.Prepare("delete from posts where uid = $1")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// remember to save schema after the post deleted :)
-	delete(schema.Posts, id)
-	err = c.writeDB(schema)
-
-	return err
+	res, err := stmt.Exec(id)
+	return res, err
 }

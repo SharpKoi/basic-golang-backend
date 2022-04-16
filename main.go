@@ -5,6 +5,7 @@ import (
 	"go-backend-example/internal/database"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -20,7 +21,7 @@ type errorBody struct {
 }
 
 func main() {
-	dbClient := database.NewClient("db/db.json")
+	dbClient := database.NewClient(os.Getenv("database_url"), "db/sql")
 	err := dbClient.InitDB()
 	if err != nil {
 		log.Fatal(err)

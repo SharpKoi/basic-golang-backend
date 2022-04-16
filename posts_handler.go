@@ -34,14 +34,15 @@ func (apiConf apiConfig) handlerCreatePost(w http.ResponseWriter, r *http.Reques
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
-	post, err := apiConf.dbClient.CreatePost(params.UserEmail, params.Text)
+	_, err = apiConf.dbClient.CreatePost(params.UserEmail, params.Text)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	respondWithJson(w, http.StatusOK, post)
-	log.Printf("A new post created: %s\n", post.ID)
+	respondWithJson(w, http.StatusOK, "Successfully created a new post!")
+
+	log.Println("A new post created.")
 }
 
 // DELETE /api/posts/example-uuid
@@ -54,18 +55,14 @@ func (apiConf apiConfig) handlerDeletePost(w http.ResponseWriter, r *http.Reques
 	}
 	uuid = strings.TrimPrefix(uuid, "/")
 
-	err := apiConf.dbClient.DeletePost(uuid)
+	_, err := apiConf.dbClient.DeletePost(uuid)
 	if err != nil {
 		respondWithError(w, http.StatusNoContent, err)
 		return
 	}
 
 	msg := fmt.Sprintf("Successfully deleted post with uuid: %s", uuid)
-	respondWithJson(w, http.StatusOK, struct {
-		Message string `json:"message"`
-	}{
-		Message: msg,
-	})
+	respondWithJson(w, http.StatusOK, msg)
 	log.Println(msg)
 }
 
