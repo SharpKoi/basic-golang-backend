@@ -1,6 +1,6 @@
-# Golang Backend Example - Social Media
+# Advanced Golang Backend - Social Media
 
-> :bulb: Info: You're in advance version which implemented more ideas. To see the original example please switch to `master` branch.
+> :bulb: **Info: You're in advanced example which implemented more ideas. To see the original example please switch to `master` branch.**
 
 This project is written in[ Go](https://go.dev/). After learning from [Boot.dev](https://boot.dev/courses/cs-track) Golang courses, trying to implement a simple RESTful backend API with golang standard library `net/http`, and using json as the database.
 
@@ -35,9 +35,14 @@ Here's also a [full testing example](https://www.postman.com/science-architect-4
 
 These Ideas below are from [the final section](https://boot.dev/project/709a2e74-eb45-46ea-ac26-4b8e6a3ce3e6/ec5c7007-8ed2-4e17-a9c9-c54007d0e0fb) of the course, for extending the backend program.
 
-- [ ] Use PostgresQL instead of a JSON file for the database layer
-- [ ] Allow users to save other data with their posts
+- [x] Use PostgreSQL instead of a JSON file for the database layer
+  - Use [pgx](https://github.com/jackc/pgx) as PostgreSQL Driver
+  - Use [database/sql](https://pkg.go.dev/database/sql) to implement SQL operations
+  - Alternatively there are more powerful tools like [migrate](https://github.com/golang-migrate/migrate), [gorm](https://github.com/go-gorm/gorm) to implement SQL database layer.
+
 - [ ] Add proper authentication to each request, may use the [password validator](https://github.com/wagslane/go-password-validator) designed by Lane
+
+- [ ] Allow users to save other data with their posts
 - [ ] Add more unit tests
 - [ ] Deploy the API on AWS, GCP, or Digital Ocean
 - [ ] Dockerize it
@@ -47,5 +52,6 @@ These Ideas below are from [the final section](https://boot.dev/project/709a2e74
  And these ideas below are mine
 
 - [ ] Write a full guide for the backend API designing
+- [ ] Use [gin](https://github.com/gin-gonic/gin) to implement backend API, [go-oauth2](https://github.com/golang/oauth2) to implement authentications, and [gorm](https://github.com/go-gorm/gorm) to implement SQL database layer
 - [ ] Integrate with discord bot
 - [ ] Use sentimental analysis to detect the emotion of each post
