@@ -36,8 +36,8 @@ Here's also a [full testing example](https://www.postman.com/science-architect-4
 These Ideas below are from [the final section](https://boot.dev/project/709a2e74-eb45-46ea-ac26-4b8e6a3ce3e6/ec5c7007-8ed2-4e17-a9c9-c54007d0e0fb) of the course, for extending the backend program.
 
 - [x] Use PostgreSQL instead of a JSON file for the database layer
-  - Use [pgx](https://github.com/jackc/pgx) as PostgreSQL Driver
-  - Use [database/sql](https://pkg.go.dev/database/sql) to implement SQL operations
+  - Used [pgx](https://github.com/jackc/pgx) as PostgreSQL Driver
+  - Used [database/sql](https://pkg.go.dev/database/sql) to implement SQL operations
   - Alternatively there are more powerful tools like [migrate](https://github.com/golang-migrate/migrate), [gorm](https://github.com/go-gorm/gorm) to implement SQL database layer.
 
 - [ ] Add proper authentication to each request, may use the [password validator](https://github.com/wagslane/go-password-validator) designed by Lane
