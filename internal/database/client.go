@@ -35,7 +35,7 @@ func NewClient(dbURL string, sqlPath string) Client {
 
 	// ping test
 	if err := db.Ping(); err != nil {
-		log.Println("Warning: Ping failed.", err)
+		log.Println("Warning: Ping failed. The database URL is unreachable.", err)
 	}
 
 	return client
