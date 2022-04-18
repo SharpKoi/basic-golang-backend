@@ -20,7 +20,11 @@ func (apiConf apiConfig) endpointUsersHandler(w http.ResponseWriter, r *http.Req
 			apiConf.handlerGetUser(w, r)
 		}
 	case http.MethodPost:
-		apiConf.handlerCreateUser(w, r)
+		if url == apiConf.usersHandlerPath || url == apiConf.usersHandlerPath+"/" {
+			apiConf.handlerCreateUser(w, r)
+		} else {
+
+		}
 	case http.MethodPut:
 		apiConf.handlerUpdateUser(w, r)
 	case http.MethodDelete:
@@ -28,6 +32,36 @@ func (apiConf apiConfig) endpointUsersHandler(w http.ResponseWriter, r *http.Req
 	default:
 		respondWithError(w, http.StatusMethodNotAllowed, errors.New("method not supported"))
 	}
+}
+
+// POST /api/users/login
+func (apiConf apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
+	params := struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}{}
+
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&params)
+	if err != nil {
+		respondWithError(w, 401, errors.New("errors occurred while decoding request body"))
+		return
+	}
+
+	// retrieve user info
+	user, err := apiConf.dbClient.GetUser(params.Email)
+	if err != nil {
+		respondWithError(w, 401, err)
+		return
+	}
+
+	// password checking
+	if params.Password != user.Password {
+		respondWithError(w, 401, errors.New("wrong password"))
+		return
+	}
+
+	// respond with a token
 }
 
 // GET /api/users or /api/users/
