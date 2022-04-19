@@ -33,19 +33,4 @@ Here's also a [full testing example](https://www.postman.com/science-architect-4
 
 ## TODO
 
-These Ideas below are from [the final section](https://boot.dev/project/709a2e74-eb45-46ea-ac26-4b8e6a3ce3e6/ec5c7007-8ed2-4e17-a9c9-c54007d0e0fb) of the course, for extending the backend program.
-
-- [ ] Use PostgresQL instead of a JSON file for the database layer
-- [ ] Allow users to save other data with their posts
-- [ ] Add proper authentication to each request, may use the [password validator](https://github.com/wagslane/go-password-validator) designed by Lane
-- [ ] Add more unit tests
-- [ ] Deploy the API on AWS, GCP, or Digital Ocean
-- [ ] Dockerize it
-- [ ] Add documentation using markdown files
-- [ ] Write a frontend that interacts with the API, maybe a webpage or a mobile app
-
- And these ideas below are mine
-
-- [ ] Write a full guide for the backend API designing
-- [ ] Integrate with discord bot
-- [ ] Use sentimental analysis to detect the emotion of each post
+See the new updates in [advance](https://github.com/SharpKoi/golang-backend-example/tree/advance) branch 🤩
