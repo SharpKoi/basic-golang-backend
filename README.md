@@ -2,7 +2,7 @@
 
 > :bulb: **Info: You're in advanced example which implemented more ideas. To see the original example please switch to `master` branch.**
 
-This project is written in[ Go](https://go.dev/). After learning from [Boot.dev](https://boot.dev/courses/cs-track) Golang courses, trying to implement a simple RESTful backend API with golang standard library `net/http`, and using json as the database.
+This project is written in[ Go](https://go.dev/). After learning from [Boot.dev](https://boot.dev/courses/cs-track) Golang courses, trying to implement a simple RESTful backend API with golang standard library **`net/http`**, and using ~~json~~ **PostgreSQL** as the database.
 
 To run this project, type the command below:
 
@@ -39,9 +39,9 @@ These Ideas below are from [the final section](https://boot.dev/project/709a2e74
   - Used [pgx](https://github.com/jackc/pgx) as PostgreSQL Driver
   - Used [database/sql](https://pkg.go.dev/database/sql) to implement SQL operations
   - Alternatively there are more powerful tools like [migrate](https://github.com/golang-migrate/migrate), [gorm](https://github.com/go-gorm/gorm) to implement SQL database layer.
-
-- [ ] Add proper authentication to each request, may use the [password validator](https://github.com/wagslane/go-password-validator) designed by Lane
-
+- [x] Add proper authentication to each request, may use the [password validator](https://github.com/wagslane/go-password-validator) designed by Lane
+  - Used [jwt-go](https://github.com/dgrijalva/jwt-go) to implement JWT authorization layer
+  - TODO: use [password validator](https://github.com/wagslane/go-password-validator) to validate password strength
 - [ ] Allow users to save other data with their posts
 - [ ] Add more unit tests
 - [ ] Deploy the API on AWS, GCP, or Digital Ocean
