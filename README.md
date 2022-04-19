@@ -4,15 +4,27 @@
 
 This project is written in[ Go](https://go.dev/). After learning from [Boot.dev](https://boot.dev/courses/cs-track) Golang courses, trying to implement a simple RESTful backend API with golang standard library **`net/http`**, and using ~~json~~ **PostgreSQL** as the database.
 
-To run this project, type the command below:
+To run this project, please clone this project to your local machine first:
 
 ```sh
 git clone https://github.com/SharpKoi/golang-backend-example.git
 cd golang-backend-example
+```
+
+ And you need to set environment variables `DATABASE_URL` and `JWTSecret`:
+
+```sh
+export database_url=${your postgreSQL database URL}
+export jwtsecret=${your jwt key}
+```
+
+Type the command below to run the project:
+
+```sh
 go run .
 ```
 
-And it will create a localhost server listening on port 8080.
+It will create a localhost server listening on port 8080.
 
 You can use Postman or curl or any else to test this API.
 
