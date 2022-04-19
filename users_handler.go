@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/golang-jwt/jwt"
+	"go-backend-example/internal/auth"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func (apiConf apiConfig) endpointUsersHandler(w http.ResponseWriter, r *http.Request) {
@@ -22,8 +25,8 @@ func (apiConf apiConfig) endpointUsersHandler(w http.ResponseWriter, r *http.Req
 	case http.MethodPost:
 		if url == apiConf.usersHandlerPath || url == apiConf.usersHandlerPath+"/" {
 			apiConf.handlerCreateUser(w, r)
-		} else {
-
+		} else if url == apiConf.usersHandlerPath+"/login" || url == apiConf.postsHandlerPath+"login" {
+			apiConf.handlerLogin(w, r)
 		}
 	case http.MethodPut:
 		apiConf.handlerUpdateUser(w, r)
@@ -62,10 +65,48 @@ func (apiConf apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// respond with a token
+	now := time.Now()
+	claim := auth.UserClaims{
+		Account: user.Email,
+		Role:    user.Role,
+		StandardClaims: jwt.StandardClaims{
+			Issuer:    "go-backend-demo",
+			IssuedAt:  now.Unix(),
+			ExpiresAt: now.Add(2 * time.Hour).Unix(),
+			Subject:   "Token For User Login",
+			Audience:  user.Email,
+		},
+	}
+
+	// create token
+	token, err := auth.CreateUserToken(claim)
+	if err != nil {
+		respondWithError(w, 500, err)
+		return
+	}
+
+	// respond with token
+	respondWithJson(w, 200, struct {
+		Token string
+	}{
+		Token: token,
+	})
 }
 
 // GET /api/users or /api/users/
 func (apiConf apiConfig) handlerGetUsers(w http.ResponseWriter, r *http.Request) {
+	claims, err := auth.VerifyUserToken(r)
+	if err != nil {
+		respondWithError(w, 401, err)
+		return
+	}
+
+	// TODO: use scope system to check permission
+	if claims.Role != "admin" {
+		respondWithError(w, 403, errors.New("have no permission to access resources"))
+		return
+	}
+
 	users, err := apiConf.dbClient.GetUsers(10)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
@@ -79,11 +120,27 @@ func (apiConf apiConfig) handlerGetUsers(w http.ResponseWriter, r *http.Request)
 func (apiConf apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.String()
 	email := strings.TrimPrefix(url, apiConf.usersHandlerPath)
+
 	if email == "" || email == "/" {
 		respondWithError(w, http.StatusNoContent, errors.New("email cannot be omitted"))
 		return
 	}
+	// do not trim prefix with "/" first because the url may not contain "/" so that it would trim nothing.
+	// trim the prefix "/" after check
 	email = strings.TrimPrefix(email, "/")
+
+	claims, err := auth.VerifyUserToken(r)
+	if err != nil {
+		respondWithError(w, 401, err)
+		return
+	}
+
+	// TODO: use scope system to check permission
+	log.Println(claims.Account)
+	if claims.Role != "admin" && claims.Account != email {
+		respondWithError(w, 403, errors.New("have no permission to access resources"))
+		return
+	}
 
 	user, err := apiConf.dbClient.GetUser(email)
 	if err != nil {
@@ -96,22 +153,35 @@ func (apiConf apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request) 
 
 // POST /api/users or /api/users/
 func (apiConf apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
+	claims, err := auth.VerifyUserToken(r)
+	if err != nil {
+		respondWithError(w, 401, err)
+		return
+	}
+
+	// TODO: use scope system to check permission
+	if claims.Role != "admin" {
+		respondWithError(w, 403, errors.New("have no permission to access resources"))
+		return
+	}
+
 	type parameters struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 		Name     string `json:"name"`
 		Age      int    `json:"age"`
+		Role     string `json:"role"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
-	err := decoder.Decode(&params)
+	err = decoder.Decode(&params)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	_, err = apiConf.dbClient.CreateUser(params.Email, params.Password, params.Name, params.Age)
+	_, err = apiConf.dbClient.CreateUser(params.Email, params.Password, params.Name, params.Age, params.Role)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
@@ -127,27 +197,41 @@ func (apiConf apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 func (apiConf apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.String()
 	email := strings.TrimPrefix(url, apiConf.usersHandlerPath)
+
 	if email == "" || email == "/" {
 		respondWithError(w, http.StatusNoContent, errors.New("email cannot be omitted"))
 		return
 	}
 	email = strings.TrimPrefix(email, "/")
 
+	claims, err := auth.VerifyUserToken(r)
+	if err != nil {
+		respondWithError(w, 401, err)
+		return
+	}
+
+	// TODO: use scope system to check permission
+	if claims.Role != "admin" && claims.Account != email {
+		respondWithError(w, 403, errors.New("have no permission to access resources"))
+		return
+	}
+
 	params := struct {
 		Password string `json:"password"`
 		Name     string `json:"name"`
 		Age      int    `json:"age"`
+		Role     string `json:"role"`
 	}{}
 
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&params)
+	err = decoder.Decode(&params)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	msg := "Successfully update user's info"
-	_, err = apiConf.dbClient.UpdateUser(email, params.Password, params.Name, params.Age)
+	_, err = apiConf.dbClient.UpdateUser(email, params.Password, params.Name, params.Age, params.Role)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
@@ -161,13 +245,26 @@ func (apiConf apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Reques
 func (apiConf apiConfig) handlerDeleteUser(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.String()
 	email := strings.TrimPrefix(url, apiConf.usersHandlerPath)
+
 	if email == "" || email == "/" {
 		respondWithError(w, http.StatusNoContent, errors.New("email cannot be omitted"))
 		return
 	}
 	email = strings.TrimPrefix(email, "/")
 
-	_, err := apiConf.dbClient.DeleteUser(email)
+	claims, err := auth.VerifyUserToken(r)
+	if err != nil {
+		respondWithError(w, 401, err)
+		return
+	}
+
+	// TODO: use scope system to check permission
+	if claims.Role != "admin" && claims.Account != email {
+		respondWithError(w, 403, errors.New("have no permission to access resources"))
+		return
+	}
+
+	_, err = apiConf.dbClient.DeleteUser(email)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
 		return

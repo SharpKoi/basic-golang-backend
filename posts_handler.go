@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go-backend-example/internal/auth"
 	"log"
 	"net/http"
 	"strings"
@@ -34,6 +35,20 @@ func (apiConf apiConfig) handlerCreatePost(w http.ResponseWriter, r *http.Reques
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
+
+	claims, err := auth.VerifyUserToken(r)
+	if err != nil {
+		respondWithError(w, 401, err)
+		return
+	}
+
+	// TODO: use scope system to check permission
+	if claims.Account != params.UserEmail {
+		// user can only post with his/her own email even if user is admin
+		respondWithError(w, 403, errors.New("have no permission to access resources"))
+		return
+	}
+
 	_, err = apiConf.dbClient.CreatePost(params.UserEmail, params.Text)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
@@ -55,7 +70,29 @@ func (apiConf apiConfig) handlerDeletePost(w http.ResponseWriter, r *http.Reques
 	}
 	uuid = strings.TrimPrefix(uuid, "/")
 
-	_, err := apiConf.dbClient.DeletePost(uuid)
+	// get the target post
+	post, err := apiConf.dbClient.GetPostById(uuid)
+	if err != nil {
+		respondWithError(w, 500, err)
+		return
+	}
+
+	// verify user's token and permission
+	claims, err := auth.VerifyUserToken(r)
+	if err != nil {
+		respondWithError(w, 401, err)
+		return
+	}
+
+	// TODO: use scope system to check permission
+	if claims.Role != "admin" && claims.Account != post.UserEmail {
+		// only admin and post owner can delete the post
+		respondWithError(w, 403, errors.New("have no permission to access resources"))
+		return
+	}
+
+	// delete post
+	_, err = apiConf.dbClient.DeletePost(uuid)
 	if err != nil {
 		respondWithError(w, http.StatusNoContent, err)
 		return

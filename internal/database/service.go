@@ -43,7 +43,7 @@ func (c Client) GetUsers(limit int) ([]User, error) {
 			id   int
 			user User
 		)
-		err := rows.Scan(&id, &user.Email, &user.Password, &user.Name, &user.Age, &user.CreatedAt)
+		err := rows.Scan(&id, &user.Email, &user.Password, &user.Name, &user.Age, &user.Role, &user.CreatedAt)
 		if err != nil {
 			return users, err
 		}
@@ -65,28 +65,32 @@ func (c Client) GetUser(email string) (User, error) {
 		id   int
 		user User
 	)
-	err := row.Scan(&id, &user.Email, &user.Password, &user.Name, &user.Age, &user.CreatedAt)
+	err := row.Scan(&id, &user.Email, &user.Password, &user.Name, &user.Age, &user.Role, &user.CreatedAt)
 
 	return user, err
 }
 
-func (c Client) CreateUser(email, password, name string, age int) (sql.Result, error) {
-	stmt, err := c.db.Prepare("insert into users (email, password, name, age, createAt) values ($1, $2, $3, $4, $5)")
+func (c Client) CreateUser(email, password, name string, age int, role string) (sql.Result, error) {
+	if role == "" {
+		// default role if role is not given
+		role = "default"
+	}
+	stmt, err := c.db.Prepare("insert into users (email, password, name, age, role, createAt) values ($1, $2, $3, $4, $5, $6)")
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := stmt.Exec(email, password, name, age, time.Now().UTC())
+	res, err := stmt.Exec(email, password, name, age, role, time.Now().UTC())
 	return res, err
 }
 
-func (c Client) UpdateUser(email, password, name string, age int) (sql.Result, error) {
-	stmt, err := c.db.Prepare("update users set password = $2, name = $3, age = $4 where email = $1")
+func (c Client) UpdateUser(email, password, name string, age int, role string) (sql.Result, error) {
+	stmt, err := c.db.Prepare("update users set password = $2, name = $3, age = $4, role = $5 where email = $1")
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := stmt.Exec(email, password, name, age)
+	res, err := stmt.Exec(email, password, name, age, role)
 	return res, err
 }
 
@@ -101,6 +105,17 @@ func (c Client) DeleteUser(email string) (sql.Result, error) {
 }
 
 /** POST SERVICE **/
+
+func (c Client) GetPostById(id string) (Post, error) {
+	row := c.db.QueryRow("select * from posts where uid = $1", id)
+	var post Post
+	err := row.Scan(&post.ID, &post.UserEmail, &post.Text, &post.CreatedAt)
+	if err != nil {
+		return Post{}, err
+	}
+
+	return post, nil
+}
 
 func (c Client) GetPosts(userEmail string) ([]Post, error) {
 	posts := []Post{}
