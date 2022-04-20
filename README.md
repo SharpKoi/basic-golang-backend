@@ -7,8 +7,8 @@ This project is written in[ Go](https://go.dev/). After learning from [Boot.dev]
 To run this project, please clone this project to your local machine first:
 
 ```sh
-git clone https://github.com/SharpKoi/golang-backend-example.git
-cd golang-backend-example
+git clone https://github.com/SharpKoi/basic-golang-backend.git
+cd basic-golang-backend
 ```
 
  And you need to set environment variables `DATABASE_URL` and `JWTSecret`:
@@ -30,16 +30,17 @@ You can use Postman or curl or any else to test this API.
 
 ## API
 
-| Method | URL                  | Description                                                 |
-| :----- | :------------------- | :---------------------------------------------------------- |
-| GET    | /api/users           | Get all user accounts from database                         |
-| GET    | /api/users/${email}  | Get the user account by user's email                        |
-| POST   | /api/users           | Create an user account by given request body                |
-| PUT    | /api/users/${email}  | Update the user account by the given email and request body |
-| DELETE | /api/users/t${email} | Delete user account by the given email                      |
-| GET    | /api/posts/${email}  | Get all the posts created by the user with the given email  |
-| POST   | /api/posts           | Create a post by given request body                         |
-| DELETE | /api/posts/${uuid}   | Delete a post by the given uuid                             |
+| Method | URL                  | Description                                                 | Permission |
+| :----- | :------------------- | :---------------------------------------------------------- | :--------: |
+| POST   | /api/users/login     | Login to retrieve your json web token                       |  everyone  |
+| GET    | /api/users           | Get all user accounts from database                         |   admin    |
+| GET    | /api/users/${email}  | Get the user account by user's email                        |   owner+   |
+| POST   | /api/users           | Create an user account by given request body                |   admin    |
+| PUT    | /api/users/${email}  | Update the user account by the given email and request body |   owner+   |
+| DELETE | /api/users/t${email} | Delete user account by the given email                      |   owner+   |
+| GET    | /api/posts/${email}  | Get all the posts created by the user with the given email  |  everyone  |
+| POST   | /api/posts           | Create a post by given request body                         |   owner    |
+| DELETE | /api/posts/${uuid}   | Delete a post by the given uuid                             |   owner+   |
 
 Here's also a [full testing example](https://www.postman.com/science-architect-49213412/workspace/go-backend-examples/collection/17316452-4ed311e2-369b-46d9-aac2-cd8137b67a97?action=share&creator=17316452) created at Postman. You can use the given examples to test this API.
 
