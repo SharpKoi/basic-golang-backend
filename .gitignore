@@ -19,6 +19,3 @@ go.work
 
 # idea
 .idea/
-
-# others
-db/
