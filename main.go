@@ -21,7 +21,13 @@ type errorBody struct {
 }
 
 func main() {
-	dbClient := database.NewClient(os.Getenv("database_url"), "db/sql")
+	dbClient := database.NewClient(database.DSN{
+		Host:     "database",
+		Port:     5432,
+		User:     os.Getenv("POSTGRES_USER"),
+		Password: os.Getenv("POSTGRES_PASSWORD"),
+		DBName:   os.Getenv("POSTGRES_DB"),
+	}, "db/sql")
 	err := dbClient.InitDB()
 	if err != nil {
 		log.Fatal(err)

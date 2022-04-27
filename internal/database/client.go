@@ -7,6 +7,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -15,6 +16,19 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
+type DSN struct {
+	Host     string
+	Port     int
+	User     string
+	Password string
+	DBName   string
+}
+
+func (dsn DSN) ToString() string {
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		dsn.Host, dsn.Port, dsn.User, dsn.Password, dsn.DBName)
+}
+
 // Client store the database path.
 type Client struct {
 	sqlPath string
@@ -22,8 +36,8 @@ type Client struct {
 }
 
 // NewClient exactly create a new instance of Client.
-func NewClient(dbURL string, sqlPath string) Client {
-	db, err := sql.Open("pgx", dbURL)
+func NewClient(dsn DSN, sqlPath string) Client {
+	db, err := sql.Open("pgx", dsn.ToString())
 	if err != nil {
 		log.Fatal(err)
 	}
