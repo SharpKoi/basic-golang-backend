@@ -10,6 +10,10 @@ create table if not exists users (
     createAt timestamp
 );
 
+-- Default admin user. For demonstrative purpose.
+insert into users (email, password, name, age, role, createAt) values ('admin', 'admin', 'admin', 1, 'admin', now())
+on conflict(email) do nothing;
+
 create table if not exists posts (
 --     uid uuid default uuid_generate_v4(),
     uid varchar(255) primary key ,
