@@ -159,12 +159,6 @@ func (apiConf apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// TODO: use scope system to check permission
-	if claims.Role != "admin" {
-		respondWithError(w, 403, errors.New("have no permission to access resources"))
-		return
-	}
-
 	type parameters struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -178,6 +172,13 @@ func (apiConf apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 	err = decoder.Decode(&params)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	// TODO: use scope system to check permission
+	if params.Role == "admin" && claims.Role != "admin" {
+		// only admin can create admin users
+		respondWithError(w, 403, errors.New("have no permission to access resources"))
 		return
 	}
 
