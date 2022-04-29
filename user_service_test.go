@@ -25,7 +25,13 @@ func TestCheckUserExists(t *testing.T) {
 		},
 	}
 
-	c := database.NewClient(os.Getenv("database_url"), "../../db/sql")
+	c := database.NewClient(database.DSN{
+		Host:     "database",
+		Port:     5432,
+		User:     os.Getenv("POSTGRES_USER"),
+		Password: os.Getenv("POSTGRES_PASSWORD"),
+		DBName:   os.Getenv("POSTGRES_DB"),
+	}, "db/sql")
 
 	for i, test := range tests {
 		res, err := c.CheckUserExists(test.email)
