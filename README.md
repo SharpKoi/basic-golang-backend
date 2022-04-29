@@ -18,15 +18,15 @@ export database_url=${your postgreSQL database URL}
 export jwtsecret=${your jwt key}
 ```
 
-Type the command below to run the project:
+Type the command below to run the project (make sure you have [docker](https://docs.docker.com/engine/install/) and [docker compose](https://docs.docker.com/compose/install/) installed):
 
 ```sh
-go run .
+docker-compose up --build
 ```
 
-It will create a localhost server listening on port 8080.
+It will create a server binded on docker default bridge network address, either `127.17.0.0` or `0.0.0.0`, with port `8080`.
 
-You can use Postman or curl or any else to test this API.
+You can use Postman or curl or any else to test this API by sending requests to server address.
 
 ## API
 
@@ -58,7 +58,10 @@ These Ideas below are from [the final section](https://boot.dev/project/709a2e74
 - [ ] Allow users to save other data with their posts
 - [ ] Add more unit tests
 - [ ] Deploy the API on AWS, GCP, or Digital Ocean
-- [ ] Dockerize it
+- [x] Dockerize it
+  - Used [docker-compose](https://docs.docker.com/compose/) to build **golang** and **PostgreSQL** containers
+    - **docker-compose** is a tool that help us to build multiple containers conveniently.
+  - Used [bridge network](https://docs.docker.com/network/bridge/) to connect the two containers so that they  can communicate with each other 
 - [ ] Add documentation using markdown files
 - [ ] Write a frontend that interacts with the API, maybe a webpage or a mobile app
 
