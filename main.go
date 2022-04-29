@@ -35,7 +35,7 @@ func main() {
 
 	apiConf := apiConfig{
 		dbClient:         dbClient,
-		baseUrl:          "localhost:8080",
+		baseUrl:          os.Getenv("BACKEND_ADDRESS"),
 		usersHandlerPath: "/api/users",
 		postsHandlerPath: "/api/posts",
 	}
