@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -58,7 +60,12 @@ func (apiConf apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// password checking
+	// hash password
+	hashing := sha256.New()
+	hashing.Write([]byte(params.Password))
+	params.Password = hex.EncodeToString(hashing.Sum(nil))
+
+	// check password
 	if params.Password != user.Password {
 		respondWithError(w, 401, errors.New("wrong password"))
 		return
@@ -182,6 +189,11 @@ func (apiConf apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// encode user's password
+	hashing := sha256.New()
+	hashing.Write([]byte(params.Password))
+	params.Password = hex.EncodeToString(hashing.Sum(nil))
+
 	_, err = apiConf.dbClient.CreateUser(params.Email, params.Password, params.Name, params.Age, params.Role)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
@@ -231,7 +243,12 @@ func (apiConf apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	msg := "Successfully update user's info"
+	// encode password
+	hashing := sha256.New()
+	hashing.Write([]byte(params.Password))
+	params.Password = hex.EncodeToString(hashing.Sum(nil))
+
+	msg := "Successfully updated user's info"
 	_, err = apiConf.dbClient.UpdateUser(email, params.Password, params.Name, params.Age, params.Role)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)

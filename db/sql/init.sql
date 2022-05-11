@@ -11,8 +11,9 @@ create table if not exists users (
 );
 
 -- Default admin user. For demonstrative purpose.
-insert into users (email, password, name, age, role, createAt) values ('admin', 'admin', 'admin', 1, 'admin', now())
-on conflict(email) do nothing;
+delete from users where email='admin';
+insert into users (email, password, name, age, role, createAt) values ('admin', '607e707428137b535fd1e825ade61d58dbdc7147bd382c1cbd93a26e2e5ab7b4', 'admin', 1, 'admin', now())
+on conflict (email) do nothing ;
 
 create table if not exists posts (
 --     uid uuid default uuid_generate_v4(),
